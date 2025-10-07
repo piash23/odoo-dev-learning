@@ -13,7 +13,7 @@ This repository contains a Docker-based setup for learning Odoo development.
 2. Start the Odoo and PostgreSQL services:
 
 ```bash
-docker-compose up -d
+docker compose up -d
 ```
 
 3. Access Odoo at: http://localhost:8069
@@ -40,32 +40,41 @@ docker-compose up -d
 
 ```bash
 # Start services
-docker-compose up -d
+docker compose up -d
 
 # Stop services
-docker-compose down
+docker compose down
 
 # View logs
-docker-compose logs -f
+docker compose logs -f
 
 # View logs for specific service
-docker-compose logs -f web
-docker-compose logs -f db
+docker compose logs -f web
+docker compose logs -f db
 
 # Restart services
-docker-compose restart
+docker compose restart
 
 # Stop and remove volumes (WARNING: This will delete all data)
-docker-compose down -v
+docker compose down -v
 ```
 
 ## Troubleshooting
 
-If you encounter database connection issues:
+### Database Connection Issues
 
-1. Ensure both services are running: `docker-compose ps`
-2. Check the logs: `docker-compose logs`
-3. Restart the services: `docker-compose restart`
+If you see errors like "could not translate host name 'db' to address":
+
+1. Ensure both services are running: `docker compose ps`
+2. Check the logs: `docker compose logs`
+3. Verify the services are on the same network: `docker compose config | grep networks`
+4. Restart the services: `docker compose restart`
+
+The docker-compose.yml configuration ensures:
+- The `db` service is defined and accessible
+- The `web` service depends on `db` (starts after it)
+- Both services are on the same Docker network
+- The database hostname "db" resolves correctly within the container network
 
 ## Development
 
