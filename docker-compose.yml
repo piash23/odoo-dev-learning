@@ -1,11 +1,11 @@
 
 services:
   web:
-    image: odoo
+    image: odoo:13
     depends_on:
       - db
     ports:
-      - "8069:8069"
+      - "8013:8069"
     environment:
       - HOST=db
       - USER=odoo
