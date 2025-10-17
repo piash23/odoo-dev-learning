@@ -10,6 +10,8 @@
     'website': 'https://www.example.com',
     'depends': ['base', 'mail'],
     'data': [
+        'security/ir.model.access.csv',
+        'views/hospital_patient_views.xml',
     ],
     'installable': True,
     'application': True,
