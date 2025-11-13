@@ -11,6 +11,7 @@
     'depends': ['base', 'mail'],
     'data': [
         'security/ir.model.access.csv',
+        'data/hospital_sequence_data.xml',
         'views/hospital_patient_views.xml',
     ],
     'installable': True,
