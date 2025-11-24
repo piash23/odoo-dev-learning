@@ -16,6 +16,7 @@
                         <field name="name"/>
                         <field name="age"/>
                         <field name="gender"/>
+                        <field name="age_group"/>
                         <field name="note"/>
                         <field name="image" widget="image"/>
                     </group>
@@ -40,6 +41,7 @@
                 <field name="gender"/>
                 <field name="age"/>
                 <field name="note"/>
+                <field name="age_group"/>
                 <field name="image" widget="image"/>
             </tree>
         </field>

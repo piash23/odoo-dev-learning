@@ -9,7 +9,7 @@ class HospitalPatient(models.Model):
 
     name_seq = fields.Char(string="Sequence", required=True, copy=False, readonly=True, default=lambda self: 'New')
     name = fields.Char(string="Patient Name", required=True)
-    age = fields.Integer(string="Age")
+    age = fields.Integer(string="Age", tracking=True)
     note = fields.Text(string="Notes")
     image = fields.Binary(string="Patient Image")
     gender = fields.Selection([
