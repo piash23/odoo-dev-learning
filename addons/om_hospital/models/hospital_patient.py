@@ -16,6 +16,18 @@ class HospitalPatient(models.Model):
         ('male', 'Male'),
         ('female', 'Female')], string="Gender", default='male')
 
+    age_group = fields.Selection([
+        ('major', 'Major'),
+        ('minor', 'Minor')],
+        string="Age Group", compute='_compute_age_group', store=True)
+    
+    @api.depends('age')
+    def _compute_age_group(self):
+        for record in self:
+            if record.age < 18:
+                record.age_group = 'minor'
+            else:
+                record.age_group = 'major'
 
     @api.model
     def create(self, vals):
