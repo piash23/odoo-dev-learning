@@ -56,7 +56,7 @@
         </field>
     </record>
 
-    <menuitem id="menu_hospital_root" name="Hospital" sequence="10"/>
-    <menuitem id="menu_hospital_patient" name="Patients" parent="menu_hospital_root" action="action_hospital_patient" sequence="10"/>
+    <menuitem id="hospital_menu_root" name="Hospital" sequence="10"/>
+    <menuitem id="hospital_menu_patient" name="Patients" parent="hospital_menu_root" action="action_hospital_patient" sequence="10"/>
 
 </odoo>
