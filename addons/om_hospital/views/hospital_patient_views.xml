@@ -5,7 +5,7 @@
         <field name="name">hospital.patient.form</field>
         <field name="model">hospital.patient</field>
         <field name="arch" type="xml">
-           <form string="patient">
+           <form string="Hospital Patient">
                 <sheet>
                     <div class="oe_title">
                         <h1>
@@ -15,6 +15,7 @@
                     <group>
                         <field name="name"/>
                         <field name="age"/>
+                        <field name="gender"/>
                         <field name="note"/>
                         <field name="image" widget="image"/>
                     </group>
@@ -33,9 +34,10 @@
         <field name="model">hospital.patient</field>
         <field name="arch" type="xml">
 
-            <tree string="patient">
-
+            <tree string="Hospital Patients">
+                <field name="name_seq"/>
                 <field name="name"/>
+                <field name="gender"/>
                 <field name="age"/>
                 <field name="note"/>
                 <field name="image" widget="image"/>
@@ -44,6 +46,24 @@
 
     </record>
 
+    <record id="view_hospital_patient_search" model="ir.ui.view">
+        <field name="name">hospital.patient.search</field>
+        <field name="model">hospital.patient</field>
+        <field name="arch" type="xml">
+            <search string="search Patients">
+                <field name="name" filter_domain="['|', ('name', 'ilike', self), ('name_seq', 'ilike', self)]"/>
+                <field name="name_seq"/>
+                <separator/>
+                <filter string="Male" name="male" domain="[('gender', '=', 'male')]"/>
+                 <!-- <separator/>        -->      <!--  will make the filters and conditon from or -->
+                <filter string="Female" name="female" domain="[('gender', '=', 'female')]"/>
+
+                <group expand="0" string="Group By">
+                    <filter string="Gender" name="group_by_gender" context="{'group_by':'gender'}"/>
+                </group>   
+            </search>
+        </field>
+    </record>
 
     <record id="action_hospital_patient" model="ir.actions.act_window">
         <field name="name">Patients</field>

@@ -1,4 +1,4 @@
-from odoo import models, fields
+from odoo import models, fields, api, _
 
 
 class HospitalPatient(models.Model):
@@ -12,7 +12,12 @@ class HospitalPatient(models.Model):
     age = fields.Integer(string="Age")
     note = fields.Text(string="Notes")
     image = fields.Binary(string="Patient Image")
+    gender = fields.Selection([
+        ('male', 'Male'),
+        ('female', 'Female')], string="Gender", default='male')
 
+
+    @api.model
     def create(self, vals):
         if vals.get('name_seq', 'New') == 'New':
             vals['name_seq'] = self.env['ir.sequence'].next_by_code('hospital.patient.code') or 'New'
