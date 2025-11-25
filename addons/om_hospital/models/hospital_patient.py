@@ -1,4 +1,5 @@
 from odoo import models, fields, api, _
+from odoo.exceptions import ValidationError
 
 
 class HospitalPatient(models.Model):
@@ -34,3 +35,9 @@ class HospitalPatient(models.Model):
         if vals.get('name_seq', 'New') == 'New':
             vals['name_seq'] = self.env['ir.sequence'].next_by_code('hospital.patient.code') or 'New'
         return super(HospitalPatient, self).create(vals)
+
+    @api.constrains('age')
+    def _check_age(self):
+        for record in self:
+            if record.age < 5:
+                raise ValidationError(_("Age cannot be less than 5."))
