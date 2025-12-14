@@ -14,6 +14,7 @@
         'data/hospital_sequence_data.xml',
         'views/hospital_patient_views.xml',
         'views/sale_order_views.xml',
+        'views/hospital_appointment_views.xml',
     ],
     'installable': True,
     'application': True,

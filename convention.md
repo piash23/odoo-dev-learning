@@ -29,6 +29,22 @@ When modifying a standard Odoo model (e.g., `sale.order`).
 | **Class Name** | Same as original | `class SaleOrder(models.Model):` |
 | **File Name** | `models/[original_model_name].py` | `models/sale_order.py` |
 
+### C. Class Structure & Method Ordering (New)
+To maintain code cleanliness, class members must be ordered strictly as follows:
+
+1.  **Private Attributes:** `_name`, `_description`, `_inherit`, `_rec_name`, `_order`.
+2.  **SQL Constraints:** `_sql_constraints` (Placed before fields).
+3.  **Fields:** Database columns.
+4.  **Compute & Onchange Methods:** `_compute_...`, `_onchange_...`.
+5.  **Python Constraints:** `@api.constrains`.
+6.  **CRUD Methods:** `create`, `write`, `unlink`.
+7.  **Action Methods:** Button actions.
+
+### D. Best Practices (New)
+* **SQL Constraints:** Use `_sql_constraints` for data integrity (Unique, Check) whenever possible instead of Python code.
+* **Images:** Use `fields.Image(...)` instead of `fields.Binary(...)` for automatic resizing.
+* **Rec Name:** Do not define `_rec_name` if your model already has a `name` field.
+
 ---
 
 ## 3. XML Conventions (Views & Actions)
@@ -49,7 +65,16 @@ For new elements, we use the element type as the prefix. Odoo automatically name
 | **Tree View** | `view_[model]_tree` | `view_hospital_patient_tree` |
 | **Search View** | `view_[model]_search` | `view_hospital_patient_search` |
 
-### C. Menus (IDs)
+### C. View Labeling / String Attributes (New)
+Use proper singular/plural capitalization for the `string` attribute.
+
+| View Type | Convention | Example Code |
+| :--- | :--- | :--- |
+| **Form** | **Singular** | `<form string="Patient">` |
+| **Tree** | **Plural** | `<tree string="Patients">` |
+| **Search**| **"Search" + Plural** | `<search string="Search Patients">` |
+
+### D. Menus (IDs)
 Menus are global elements, so we use the module name prefix to group them clearly in the database.
 
 | Element | Pattern | Example ID |
@@ -57,14 +82,18 @@ Menus are global elements, so we use the module name prefix to group them clearl
 | **Menu Root** | `[module]_menu_root` | `hospital_menu_root` |
 | **Sub Menu** | `[module]_menu_[description]` | `hospital_menu_patient` |
 
-### D. Inheriting Views (IDs)
-When inheriting a view, we use the standard Odoo ID pattern with a suffix to indicate the customization source.
+### E. Inheriting Views (IDs)
+When inheriting a view, use the standard Odoo ID pattern with a suffix to indicate the customization source.
 
 | Element | Pattern | Example |
 | :--- | :--- | :--- |
 | **XML ID** | `view_[model]_form_inherit_[suffix]` | `id="view_sale_order_form_inherit_hospital"` |
 | **View Name** | `[model].form.inherit.[module]` | `<field name="name">sale.order.form.inherit.om_hospital</field>` |
 | **Inherit Ref** | `[orig_module].[orig_view_id]` | `ref="sale.view_order_form"` |
+
+### F. Search View Best Practices (New)
+* **Group By:** Modern Odoo (v14+) ignores the `expand="0"` attribute. It is acceptable to remove the `<group>` tag entirely if you simply want to list filters.
+* **Separators:** Use `<separator/>` to visually group related filters.
 
 ---
 
@@ -76,7 +105,8 @@ The module structure should strictly follow this hierarchy:
 om_hospital/
 ├── __init__.py
 ├── __manifest__.py
-├── README.md                   # This documentation
+├── README.md                   # Project Documentation
+├── NAMING_CONVENTIONS.md       # This file
 ├── models/
 │   ├── __init__.py
 │   ├── hospital_patient.py     # New Model (Strict naming)
