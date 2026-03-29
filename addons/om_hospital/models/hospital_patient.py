@@ -26,6 +26,8 @@ class HospitalPatient(models.Model):
         ('major', 'Major'),
         ('minor', 'Minor')
     ], string="Age Group", compute='_compute_age_group', store=True)
+
+    appointment_count = fields.Integer(string="Appointment Count", compute='_compute_appointment_count')
     
     # 1. Compute Methods (First)
     @api.depends('age')
@@ -36,6 +38,28 @@ class HospitalPatient(models.Model):
                 record.age_group = 'minor'
             else:
                 record.age_group = 'major'
+    
+    
+    def _compute_appointment_count(self):
+        for record in self:
+            record.appointment_count = self.env['hospital.appointment'].search_count([('patient_id', '=', record.id)])
+
+        # """Compute the number of appointments per patient using a single grouped query."""
+        # Appointment = self.env['hospital.appointment']
+        # # Aggregate counts for all patients in the current recordset
+        # data = Appointment.read_group(
+        #     [('patient_id', 'in', self.ids)],
+        #     ['patient_id'],
+        #     ['patient_id'],
+        # )
+        # # Build a mapping from patient_id -> appointment count
+        # counts_by_patient = {
+        #     item['patient_id'][0]: item['patient_id_count']
+        #     for item in data
+        #     if item.get('patient_id')
+        # }
+        # for record in self:
+        #     record.appointment_count = counts_by_patient.get(record.id, 0)
 
     # 2. Constrains (Second)
     @api.constrains('age')
@@ -50,3 +74,13 @@ class HospitalPatient(models.Model):
         if vals.get('name_seq', _('New')) == _('New'):
             vals['name_seq'] = self.env['ir.sequence'].next_by_code('hospital.patient.code') or _('New')
         return super(HospitalPatient, self).create(vals)
+
+    
+    def open_patient_appointment(self):
+        return {
+            'name': _('Appointments'),  # Added translation wrapper
+            'type': 'ir.actions.act_window',
+            'res_model': 'hospital.appointment',
+            'view_mode': 'tree,form',
+            'domain': [('patient_id', '=', self.id)],
+        }
