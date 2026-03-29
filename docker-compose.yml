@@ -17,7 +17,7 @@ services:
     restart: unless-stopped
 
   db:
-    image: postgres
+    image: postgres:15
     environment:
       - POSTGRES_DB=postgres
       - POSTGRES_USER=odoo

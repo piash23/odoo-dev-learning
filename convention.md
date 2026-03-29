@@ -33,17 +33,22 @@ When modifying a standard Odoo model (e.g., `sale.order`).
 To maintain code cleanliness, class members must be ordered strictly as follows:
 
 1.  **Private Attributes:** `_name`, `_description`, `_inherit`, `_rec_name`, `_order`.
-2.  **SQL Constraints:** `_sql_constraints` (Placed before fields).
+2.  **Default Helper Methods:** methods used directly in field defaults (for example `_default_xxx`, `_get_default_xxx`).
 3.  **Fields:** Database columns.
-4.  **Default Methods:** field `default=...` methods and `default_get`.
-5.  **Compute Methods:** `_compute_...` (usually with `@api.depends(...)`).
-6.  **Onchange Methods:** `_onchange_...` with `@api.onchange(...)`.
-7.  **Python Constraints:** `@api.constrains`.
-8.  **CRUD Methods:** `create`, `write`, `unlink` (and other ORM overrides like `copy` when needed).
-9.  **Display/Search Methods:** `name_get`, `name_search`, `_name_search`.
-10. **Action Methods:** Button actions (`action_...`).
-11. **Other Public Business Methods:** methods called by cron/server actions/other models.
-12. **Utility Methods:** shared helper/private methods (`_helper_...`, etc.).
+4.  **SQL Constraints:** `_sql_constraints` (typically placed after fields in Odoo core code).
+5.  **`default_get`:** override for multi-field dynamic defaults.
+6.  **Compute Methods:** `_compute_...` (usually with `@api.depends(...)`).
+7.  **Onchange Methods:** `_onchange_...` with `@api.onchange(...)`.
+8.  **Python Constraints:** `@api.constrains`.
+9.  **CRUD Methods:** `create`, `write`, `unlink` (and other ORM overrides like `copy` when needed).
+10. **Display/Search Methods:** `name_get`, `name_search`, `_name_search`.
+11. **Action Methods:** Button actions (`action_...`).
+12. **Other Public Business Methods:** methods called by cron/server actions/other models.
+13. **Utility Methods:** shared helper/private methods (`_helper_...`, etc.).
+
+**Note:** If a field uses `default=_my_method`, that method must appear before the field definition in Python class body order.
+If you want to keep all methods below fields, use `default=lambda self: self._my_method()`.
+`_sql_constraints` placement does not affect runtime behavior. In existing files, keep the file's current style and avoid pure style-only reordering.
 
 ### D. Method Terminology (Important)
 These terms are commonly confused. Use the definitions below:
@@ -54,6 +59,9 @@ These terms are commonly confused. Use the definitions below:
     * `default=lambda self: ...` on a field
     * `def _default_xxx(self): ...` used in field `default=_default_xxx`
     * `def default_get(self, fields_list): ...` for multi-field default logic
+    Placement:
+    * `_default_xxx`/`_get_default_xxx` used directly by fields should be before fields
+    * `default_get` is recommended after fields (or immediately before fields if your team standard prefers it)
 
 * **Compute Methods**
     Methods that calculate a field value dynamically via `compute='method_name'`.
