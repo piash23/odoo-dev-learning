@@ -35,12 +35,54 @@ To maintain code cleanliness, class members must be ordered strictly as follows:
 1.  **Private Attributes:** `_name`, `_description`, `_inherit`, `_rec_name`, `_order`.
 2.  **SQL Constraints:** `_sql_constraints` (Placed before fields).
 3.  **Fields:** Database columns.
-4.  **Compute & Onchange Methods:** `_compute_...`, `_onchange_...`.
-5.  **Python Constraints:** `@api.constrains`.
-6.  **CRUD Methods:** `create`, `write`, `unlink`.
-7.  **Action Methods:** Button actions.
+4.  **Default Methods:** field `default=...` methods and `default_get`.
+5.  **Compute Methods:** `_compute_...` (usually with `@api.depends(...)`).
+6.  **Onchange Methods:** `_onchange_...` with `@api.onchange(...)`.
+7.  **Python Constraints:** `@api.constrains`.
+8.  **CRUD Methods:** `create`, `write`, `unlink` (and other ORM overrides like `copy` when needed).
+9.  **Display/Search Methods:** `name_get`, `name_search`, `_name_search`.
+10. **Action Methods:** Button actions (`action_...`).
+11. **Other Public Business Methods:** methods called by cron/server actions/other models.
+12. **Utility Methods:** shared helper/private methods (`_helper_...`, etc.).
 
-### D. Best Practices (New)
+### D. Method Terminology (Important)
+These terms are commonly confused. Use the definitions below:
+
+* **Default Methods**
+    Methods that provide initial values when creating a record.
+    Examples:
+    * `default=lambda self: ...` on a field
+    * `def _default_xxx(self): ...` used in field `default=_default_xxx`
+    * `def default_get(self, fields_list): ...` for multi-field default logic
+
+* **Compute Methods**
+    Methods that calculate a field value dynamically via `compute='method_name'`.
+    Typical naming: `_compute_xxx`.
+
+* **`@api.depends(...)`**
+    A dependency declaration for a compute method.
+    In practice, methods with `@api.depends` are treated as compute methods because they recompute when dependent fields change.
+
+* **Onchange Methods**
+    UI/form helper methods (`@api.onchange`) that update values in the form before saving.
+    They are not a replacement for compute or constraints.
+
+* **Constraint Methods**
+    Validation methods (`@api.constrains`) that block invalid data on create/write.
+
+* **Display/Search Methods**
+    Methods that control how records are shown and searched in relational fields.
+    Examples:
+    * `name_get`: controls display label
+    * `name_search` / `_name_search`: controls autocomplete/search behavior
+
+* **Other Common ORM Methods Often Missed**
+    * `copy`: customize duplication behavior
+    * `unlink`: delete behavior (already in CRUD)
+    * `@api.ondelete`: pre-delete safety rules
+    * computed field helpers: `inverse` and `search` methods when required
+
+### E. Best Practices (New)
 * **SQL Constraints:** Use `_sql_constraints` for data integrity (Unique, Check) whenever possible instead of Python code.
 * **Images:** Use `fields.Image(...)` instead of `fields.Binary(...)` for automatic resizing.
 * **Rec Name:** Do not define `_rec_name` if your model already has a `name` field.
