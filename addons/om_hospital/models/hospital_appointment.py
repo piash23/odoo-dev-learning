@@ -21,6 +21,12 @@ class HospitalAppointment(models.Model):
     appointment_date = fields.Datetime(string="Appointment Date", required=True, tracking=True)
     doctor_name = fields.Char(string="Doctor Name", required=True, tracking=True)
     notes = fields.Text(string="Notes", default=_get_default_notes)  # Added default value for better UX
+    state = fields.Selection([
+        ('draft', 'Draft'),
+        ('confirmed', 'Confirmed'),
+        ('done', 'Done'),
+        ('cancelled', 'Cancelled')
+    ], string="Status", default='draft', tracking=True)
 
     # Compute Methods
     # (No compute methods needed for this model currently)
