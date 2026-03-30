@@ -44,3 +44,27 @@ class HospitalAppointment(models.Model):
         if vals.get('appointment_seq', _('New')) == _('New'):
             vals['appointment_seq'] = self.env['ir.sequence'].next_by_code('hospital.appointment.code') or _('New')
         return super(HospitalAppointment, self).create(vals)
+
+    def action_confirm(self):
+        for record in self:
+            if record.state != 'draft':
+                raise ValidationError(_("Only appointments in draft state can be confirmed."))
+            record.state = 'confirmed'
+    
+    def action_done(self):
+        for record in self:
+            if record.state != 'confirmed':
+                raise ValidationError(_("Only confirmed appointments can be marked as done."))
+            record.state = 'done'
+    
+    def action_cancel(self):
+        for record in self:
+            if record.state not in ['draft', 'confirmed']:
+                raise ValidationError(_("Only appointments in draft or confirmed state can be cancelled."))
+            record.state = 'cancelled'
+    
+    def action_reset_to_draft(self):
+        for record in self:
+            if record.state not in ['cancelled', 'done']:
+                raise ValidationError(_("Only appointments in cancelled or done state can be reset to draft."))
+            record.state = 'draft'

@@ -6,6 +6,10 @@
         <field name="arch" type="xml">
             <form string="Hospital Appointment">
                 <header>
+                    <button name="action_confirm" type="object" string="Confirm" states="draft" class="oe_highlight"/>
+                    <button name="action_done" type="object" string="Done" states="confirmed" class="oe_highlight"/>
+                    <button name="action_cancel" type="object" string="Cancel" states="draft,confirmed" class="oe_highlight"/>
+                    <button name="action_reset_to_draft" type="object" string="Reset to Draft" states="cancelled,done" class="oe_highlight"/>
                     <field name="state" widget="statusbar" statusbar_visible="draft,confirmed,done,cancelled"/>
                 </header>
                 <sheet>

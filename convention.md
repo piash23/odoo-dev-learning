@@ -145,6 +145,25 @@ When inheriting a view, use the standard Odoo ID pattern with a suffix to indica
 * **Group By:** Modern Odoo (v14+) ignores the `expand="0"` attribute. It is acceptable to remove the `<group>` tag entirely if you simply want to list filters.
 * **Separators:** Use `<separator/>` to visually group related filters.
 
+### G. Header Button Naming Convention (New)
+For form header buttons (`<header><button .../></header>`), use consistent action method names and user-facing labels.
+
+| Button Purpose | Python Method (`name`) | UI Label (`string`) | Typical States |
+| :--- | :--- | :--- | :--- |
+| Confirm record | `action_confirm` | `Confirm` | `draft` |
+| Mark finished | `action_done` | `Done` | `confirmed` |
+| Cancel record | `action_cancel` | `Cancel` | `draft,confirmed` |
+| Return to draft | `action_reset_to_draft` (preferred) or `action_reset` | `Reset to Draft` | `cancelled,done` |
+
+Rules:
+* Use `action_` prefix for button methods triggered with `type="object"`.
+* Use a verb-based method name that describes the transition (`confirm`, `cancel`, `done`, `reset_to_draft`).
+* Keep `string` short, title case, and business-friendly.
+* Keep selection state keys stable and lowercase (`draft`, `confirmed`, `done`, `cancelled`).
+* `oe_highlight` should be used only for the primary next action in a state.
+
+Current `hospital.appointment` buttons already follow this convention. Optional improvement: rename `action_reset` to `action_reset_to_draft` for extra clarity.
+
 ---
 
 ## 4. Directory Structure
