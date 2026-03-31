@@ -164,6 +164,149 @@ Rules:
 
 Current `hospital.appointment` buttons already follow this convention. Optional improvement: rename `action_reset` to `action_reset_to_draft` for extra clarity.
 
+### H. Report Conventions (Odoo 13)
+Use a dedicated `report/` folder (singular) for report XML and optional report Python files.
+
+Odoo 13 commonly defines report actions using the `<report .../>` tag (shortcut syntax). Keep this as the primary documented style in this project.
+
+Version timeline for this convention:
+* **Odoo 13:** `<report>` is the standard and recommended style.
+* **Odoo 14:** shortcut tags (`<report>`, `<act_window>`) are deprecated; explicit `<record>` style with bindings is the recommended standard.
+* **Odoo 15+:** shortcut tags still work for backward compatibility, but explicit `<record>` style is preferred.
+
+#### Report File Naming
+| Element | Pattern | Example |
+| :--- | :--- | :--- |
+| **Report XML File** | `report/[model_snake_case]_report.xml` | `report/hospital_patient_report.xml` |
+| **Optional Report Python File** | `report/[model_snake_case]_report.py` | `report/hospital_patient_report.py` |
+
+#### Report XML IDs and Fields (Using `<report>` Tag in Odoo 13)
+| Element | Pattern | Example |
+| :--- | :--- | :--- |
+| **Report Action ID** | `action_report_[model_snake_case]` | `action_report_hospital_patient` |
+| **Main Report Template ID** | `report_[model_snake_case]` | `report_hospital_patient` |
+| **Optional Document Template ID** | `[main_template_id]_document` | `report_hospital_patient_document` |
+| **`name` / `file` on `<report>`** | `[module_name].[main_template_id]` | `om_hospital.report_hospital_patient` |
+
+Rules:
+* Replace model dots with underscores in IDs (`hospital.patient` -> `hospital_patient`).
+* Keep report actions prefixed with `action_report_` for clarity and consistency.
+* In `<report>`, `name` must point to the main QWeb template external ID (`module.template_id`).
+* Keep display `name` business-friendly (example: `Patient Details`).
+* `print_report_name` should be readable and include the record name when useful.
+* `file` should match `name` in standard QWeb PDF usage.
+* Report XML files must be declared in `data` inside `__manifest__.py` or Odoo will not load them.
+
+Accepted template structures:
+* **Single-template report:** only `report_hospital_patient` template.
+* **Two-template report:** `report_hospital_patient` (wrapper/loop) + `report_hospital_patient_document` (document body).
+
+#### Custom Python Report Convention (`models.AbstractModel`)
+Use a Python report class only when you need extra data preparation beyond plain `docs` rendering.
+
+##### 1) Python File Name and Location
+| Element | Rule | Example |
+| :--- | :--- | :--- |
+| **Folder** | Must be in `report/` | `om_hospital/report/` |
+| **File Name** | Snake case, usually ending with `_report.py` | `hospital_patient_report.py` |
+
+Notes:
+* Import the file in `report/__init__.py`.
+* Import the `report` package in the module root `__init__.py` when Python files exist under `report/`.
+
+##### 2) Python Class Name
+| Rule | Examples |
+| :--- | :--- |
+| CamelCase, include report intent | `PatientDetailsReport`, `ReportHospitalPatient` |
+
+##### 3) Technical `_name` Rule (Mandatory)
+This is a strict engine lookup rule, not only a style preference.
+
+Pattern:
+* `report.<module_name>.<main_template_id>`
+
+Example:
+* Module: `om_hospital`
+* Main template ID: `report_hospital_patient`
+* Required `_name`: `report.om_hospital.report_hospital_patient`
+
+##### 4) Required Method Signature
+Use exactly:
+* `_get_report_values(self, docids, data=None)`
+
+This method must return a dictionary used as QWeb rendering context.
+
+##### 5) Example (Odoo 13)
+
+File: `om_hospital/report/hospital_patient_report.py`
+
+```python
+from odoo import api, models
+
+
+class PatientDetailsReport(models.AbstractModel):
+    # CRITICAL: report.<module_name>.<main_template_id>
+    _name = "report.om_hospital.report_hospital_patient"
+    _description = "Patient Details Custom Report"
+
+    @api.model
+    def _get_report_values(self, docids, data=None):
+        docs = self.env["hospital.patient"].browse(docids)
+        total_appointments = self.env["hospital.appointment"].search_count([
+            ("patient_id", "in", docids),
+        ])
+
+        return {
+            "doc_ids": docids,
+            "doc_model": "hospital.patient",
+            "docs": docs,
+            "custom_data": "This is a custom string",
+            "total_appointments": total_appointments,
+        }
+```
+
+##### 6) QWeb Usage of Returned Values
+Any key returned by `_get_report_values` can be consumed in template XML.
+
+```xml
+<p>Total Appointments for these patients: <t t-esc="total_appointments"/></p>
+```
+
+##### 7) Checklist for Custom Reports
+* [ ] File is under `report/` (example: `hospital_patient_report.py`).
+* [ ] Class inherits `models.AbstractModel`.
+* [ ] `_name` is exactly `report.<module_name>.<main_template_id>`.
+* [ ] Method is exactly `_get_report_values(self, docids, data=None)`.
+* [ ] Python file is imported in `report/__init__.py`.
+* [ ] `report` package is imported in module root `__init__.py`.
+
+Recommended action snippet (Odoo 13, preferred):
+
+```xml
+<report
+    id="action_report_hospital_patient"
+    model="hospital.patient"
+    string="Patient Details"
+    report_type="qweb-pdf"
+    name="om_hospital.report_hospital_patient"
+    file="om_hospital.report_hospital_patient"
+/>
+```
+
+Alternative verbose form (also valid in Odoo 13, and preferred for Odoo 14+):
+
+```xml
+<record id="action_report_hospital_patient" model="ir.actions.report">
+    <field name="name">Patient Details</field>
+    <field name="model">hospital.patient</field>
+    <field name="report_type">qweb-pdf</field>
+    <field name="report_name">om_hospital.report_hospital_patient</field>
+    <field name="report_file">om_hospital.report_hospital_patient</field>
+    <field name="binding_model_id" ref="model_hospital_patient"/>
+    <field name="binding_type">report</field>
+</record>
+```
+
 ---
 
 ## 4. Directory Structure
@@ -176,10 +319,21 @@ om_hospital/
 ├── __manifest__.py
 ├── README.md                   # Project Documentation
 ├── NAMING_CONVENTIONS.md       # This file
+├── security/
+│   └── ir.model.access.csv     # Required ACLs for UI/model access
+├── data/
+│   ├── hospital_sequence_data.xml # (Optional) Sequences (example: patient IDs)
+│   ├── hospital_demo_data.xml     # (Optional) Demo records
+│   └── hospital_cron_data.xml     # (Optional) Scheduled actions
 ├── models/
-│   ├── __init__.py
+│   ├── __init__.py             # Required to load Python model files
 │   ├── hospital_patient.py     # New Model (Strict naming)
 │   └── sale_order.py           # Inherited Model
+├── report/
+│   ├── hospital_patient_report.xml # Patient report definition (QWeb + action)
+│   ├── hospital_appointment_report.xml # (Optional) Appointment-focused report
+│   ├── hospital_patient_report.py # (Optional) report helper/parser
+│   └── __init__.py                # Required when Python files are used in report/
 ├── views/
 │   ├── hospital_patient_views.xml # Views for New Model
 │   ├── sale_order_views.xml       # Inherited Views
