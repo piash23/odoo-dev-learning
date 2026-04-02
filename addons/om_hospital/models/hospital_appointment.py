@@ -28,6 +28,9 @@ class HospitalAppointment(models.Model):
         ('cancelled', 'Cancelled')
     ], string="Status", default='draft', tracking=True)
 
+    doctors_note = fields.Text(string="Doctor's Note", tracking=True)
+    prescription = fields.Text(string="Prescription", tracking=True)
+
     # Compute Methods
     # (No compute methods needed for this model currently)
 
