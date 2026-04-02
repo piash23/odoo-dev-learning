@@ -11,6 +11,9 @@
     'depends': ['base', 'mail', 'sale'],
     'data': [
         'security/ir.model.access.csv',
+        
+        'report/hospital_patient_report.xml',
+
         'data/hospital_sequence_data.xml',
         'views/hospital_patient_views.xml',
         'views/sale_order_views.xml',
