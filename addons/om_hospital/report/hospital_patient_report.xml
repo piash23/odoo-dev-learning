@@ -5,6 +5,7 @@
         model="hospital.patient"
         string="Patient Report"
         report_type="qweb-pdf"
+        menu="False"
         name="om_hospital.report_hospital_patient"
         file="om_hospital.report_hospital_patient"
         print_report_name="'Patient Report - %s' % (object.name or '')"
