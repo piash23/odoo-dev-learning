@@ -8,7 +8,7 @@ These instructions apply to this repository and should be followed for all code 
 - Primary custom models follow hospital.* namespace (example: hospital.patient)
 
 ## General Coding Rules
-- Follow existing repository naming and structure from convention.md.
+- Follow existing repository naming and structure from NAMING_CONVENTIONS.md.
 - Preserve existing code style and avoid unrelated refactors.
 - Keep IDs and filenames predictable, descriptive, and snake_case.
 
