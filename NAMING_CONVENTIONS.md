@@ -408,3 +408,321 @@ om_hospital/
 Data loading note:
 * Demo data files must live in `demo/` and must be loaded from the `demo`: [] array in `__manifest__.py`.
 * Never load demo data files from the `data`: [] array, to avoid installing fake/demo records in production databases.
+
+---
+
+## 6. Demo Data Conventions
+
+Demo data (test/seed records) must be isolated from production data and stored separately in the `demo/` folder.
+
+### A. File Naming
+Demo data XML files should use a descriptive pattern that clarifies what data they contain.
+
+| Element | Pattern | Example |
+| :--- | :--- | :--- |
+| **Demo Data File** | `demo/[module]_[model(s)]_demo.xml` or `demo/[module]_demo_data.xml` | `demo/hospital_patient_appointment_demo.xml` or `demo/hospital_demo_data.xml` |
+
+Rules:
+* Keep the file name concise and descriptive.
+* Group related models (e.g., patient + appointment) in one file for cohesion, or split if they grow large.
+* Prefix with module name to avoid conflicts.
+
+### B. Record ID Convention (Demo Records)
+Use descriptive, human-readable IDs for demo records to make them easy to identify and reference.
+
+| Model | ID Pattern | Example |
+| :--- | :--- | :--- |
+| **hospital.patient** | `hospital_patient_demo_[descriptor]` | `hospital_patient_demo_john_doe`, `hospital_patient_demo_patient_001` |
+| **hospital.appointment** | `hospital_appointment_demo_[descriptor]` | `hospital_appointment_demo_john_checkup`, `hospital_appointment_demo_inpatient_001` |
+
+Rules:
+* Use descriptive identifiers (names, types) rather than generic numbers.
+* Maintain consistency across your demo set.
+* Make IDs human-readable so developers quickly understand what each record represents.
+
+### C. Demo Data XML Structure
+
+Key rules:
+* Wrap demo records in `<data noupdate="0">` (not `noupdate="1"`). This allows demo data to be refreshed on module updates.
+* Use `<record>` elements with model attribute matching your model name.
+* Reference related demo records using `ref="demo_record_id"` in relational fields.
+* Group by model for clarity (patients first, then appointments referencing patients).
+
+### D. Example: hospital_demo_data.xml
+
+```xml
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="0">
+        
+        <!-- Hospital Patient Demo Records -->
+        <record id="hospital_patient_demo_john_doe" model="hospital.patient">
+            <field name="name">John Doe</field>
+            <field name="patient_id">PAT/00001</field>
+            <field name="age">35</field>
+            <field name="gender">male</field>
+            <field name="blood_group">O+</field>
+            <field name="mobile">+1-555-0101</field>
+            <field name="email">john.doe@example.com</field>
+        </record>
+
+        <record id="hospital_patient_demo_jane_smith" model="hospital.patient">
+            <field name="name">Jane Smith</field>
+            <field name="patient_id">PAT/00002</field>
+            <field name="age">28</field>
+            <field name="gender">female</field>
+            <field name="blood_group">AB-</field>
+            <field name="mobile">+1-555-0102</field>
+            <field name="email">jane.smith@example.com</field>
+        </record>
+
+        <!-- Hospital Appointment Demo Records (Referencing Patients) -->
+        <record id="hospital_appointment_demo_john_checkup" model="hospital.appointment">
+            <field name="name">Routine Checkup</field>
+            <field name="patient_id" ref="hospital_patient_demo_john_doe"/>
+            <field name="appointment_date">2025-04-10 09:00:00</field>
+            <field name="appointment_type">inpatient</field>
+            <field name="description">Regular annual checkup for patient</field>
+            <field name="state">draft</field>
+        </record>
+
+        <record id="hospital_appointment_demo_jane_surgery" model="hospital.appointment">
+            <field name="name">Pre-Surgery Consultation</field>
+            <field name="patient_id" ref="hospital_patient_demo_jane_smith"/>
+            <field name="appointment_date">2025-04-12 14:30:00</field>
+            <field name="appointment_type">outpatient</field>
+            <field name="description">Consultation before scheduled surgery</field>
+            <field name="state">draft</field>
+        </record>
+
+    </data>
+</odoo>
+```
+
+### E. __manifest__.py Configuration
+
+Ensure demo data is loaded in the correct array:
+
+```python
+{
+    'name': 'Hospital Management',
+    'version': '13.0.1.0.0',
+    'category': 'Healthcare',
+    'author': 'Your Name',
+    'depends': ['base'],
+    'data': [
+        'security/ir.model.access.csv',
+        'data/hospital_sequence_data.xml',
+    ],
+    'demo': [
+        'demo/hospital_demo_data.xml',  # Demo records HERE, not in 'data'
+    ],
+    'installable': True,
+}
+```
+
+Critical rule:
+* Demo files go in `'demo': []` array ONLY.
+* Production data (sequences, crons, access rules) goes in `'data': []` array.
+
+### F. Best Practices for Demo Data
+
+1. **Isolation:** Demo records should never interfere with production workflows.
+2. **Realistic Values:** Use realistic but clearly identifiable test data (e.g., `john_doe`, not `xxx`).
+3. **Relationships:** Always use `ref="demo_record_id"` to link related demo records.
+4. **Minimal Set:** Include just enough demo records to showcase module functionality (3-5 records typically).
+5. **States:** Place demo records in meaningful initial states (`draft`, `confirmed`, etc.) so they demonstrate realistic workflows.
+6. **Cleanups:** noupdate="0" ensures demo data is refreshed on module updates/reinstalls (useful for testing).
+
+---
+
+## 7. Master Data Conventions
+
+Master data (reference/configuration records) are production-critical records that should persist across module updates and never be deleted. Examples: appointment types, patient categories, facility types—similar to Odoo's "Chart of Accounts."
+
+### A. Master Data vs Demo Data
+
+**Master Data** is distinct from demo data:
+
+| Aspect | Master Data | Demo Data |
+| :--- | :--- | :--- |
+| **Purpose** | System reference/configuration for production | Test/example records for development |
+| **Folder** | `data/` | `demo/` |
+| **Array in __manifest__.py** | `'data': [...]` | `'demo': [...]` |
+| **noupdate flag** | `noupdate="1"` | `noupdate="0"` |
+| **Behavior on Update** | Persists (never overwritten) | Refreshed on reinstall |
+| **User-facing?** | YES - users select these in forms | NO - temporary test data |
+| **Example** | Appointment types (Inpatient, Outpatient) | Sample patient "John Doe" |
+
+### B. File Naming for Master Data
+
+| Element | Pattern | Example |
+| :--- | :--- | :--- |
+| **Master Data File** | `data/[module]_[entity_type]_data.xml` | `data/hospital_appointment_type_data.xml` |
+
+Breakdown:
+- `data/` — Folder where master data lives
+- `[module]` — Your module name: `hospital`
+- `[entity_type]` — What the file contains: `appointment_type`, `patient_category`, `facility_type`
+- `_data.xml` — Suffix to indicate this file contains master records
+
+You can split master data across multiple files (one per entity type) or combine related ones.
+
+### C. Master Data Record ID Naming Convention
+
+**ID Pattern:**
+```
+[module]_[entity_type]_[code]
+```
+
+**Component Breakdown:**
+
+| Component | Meaning | Rules | Example |
+| :--- | :--- | :--- | :--- |
+| `[module]` | Your module name | Lowercase | `hospital` |
+| `[entity_type]` | Type of master record | Lowercase snake_case (matches filename) | `appointment_type`, `patient_category`, `facility_type` |
+| `[code]` | Unique identifier for this record | Lowercase snake_case, stable, self-documenting | `inpatient`, `vip`, `emergency` |
+
+**Full Examples:**
+
+| Entity | ID | Breakdown |
+| :--- | :--- | :--- |
+| Inpatient Appointment Type | `hospital_appointment_type_inpatient` | `hospital` + `appointment_type` + `inpatient` |
+| VIP Patient Category | `hospital_patient_category_vip` | `hospital` + `patient_category` + `vip` |
+| ICU Facility | `hospital_facility_type_icu` | `hospital` + `facility_type` + `icu` |
+| Emergency Appointment | `hospital_appointment_type_emergency` | `hospital` + `appointment_type` + `emergency` |
+
+**Critical Rules:**
+
+1. **Stable IDs:** Never change an ID once it's released. Other modules may reference it using `ref=`.
+2. **Lowercase snake_case:** Always use lowercase and underscores (no spaces, no camelCase, no hyphens).
+3. **Self-documenting:** The ID should tell you what the record is without looking at the code.
+4. **Unique across module:** No two master records should have the same ID in your module.
+5. **Never use timestamps or numbers as codes:** Use meaningful descriptors that survive version upgrades.
+
+### D. Master Data XML Structure
+
+Key rules:
+* Wrap records in `<data noupdate="1">` (persists across updates).
+* Group by entity type for clarity.
+* Use stable, human-readable field names and values.
+* Do NOT use `ref="..."` to external model records unless they're from `base` Odoo (e.g., `ref="base.user_root"`).
+
+### E. Example: hospital_appointment_type_data.xml
+
+```xml
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        
+        <!-- Appointment Types - Master Data (System Reference) -->
+        <record id="hospital_appointment_type_inpatient" model="hospital.appointment.type">
+            <field name="name">Inpatient</field>
+            <field name="code">inpatient</field>
+            <field name="description">Patient admitted to hospital for treatment</field>
+            <field name="sequence">10</field>
+            <field name="active">True</field>
+        </record>
+
+        <record id="hospital_appointment_type_outpatient" model="hospital.appointment.type">
+            <field name="name">Outpatient</field>
+            <field name="code">outpatient</field>
+            <field name="description">Patient visits clinic without admission</field>
+            <field name="sequence">20</field>
+            <field name="active">True</field>
+        </record>
+
+        <record id="hospital_appointment_type_emergency" model="hospital.appointment.type">
+            <field name="name">Emergency</field>
+            <field name="code">emergency</field>
+            <field name="description">Emergency/urgent care appointment</field>
+            <field name="sequence">5</field>
+            <field name="active">True</field>
+        </record>
+
+    </data>
+</odoo>
+```
+
+### F. Example: hospital_patient_category_data.xml
+
+```xml
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        
+        <!-- Patient Categories - Master Data (System Reference) -->
+        <record id="hospital_patient_category_regular" model="hospital.patient.category">
+            <field name="name">Regular</field>
+            <field name="code">regular</field>
+            <field name="description">Standard patient category</field>
+            <field name="sequence">20</field>
+        </record>
+
+        <record id="hospital_patient_category_vip" model="hospital.patient.category">
+            <field name="name">VIP</field>
+            <field name="code">vip</field>
+            <field name="description">VIP/Premium patient category</field>
+            <field name="sequence">10</field>
+        </record>
+
+        <record id="hospital_patient_category_insurance" model="hospital.patient.category">
+            <field name="name">Insurance</field>
+            <field name="code">insurance</field>
+            <field name="description">Patient covered by insurance</field>
+            <field name="sequence">15</field>
+        </record>
+
+    </data>
+</odoo>
+```
+
+### G. __manifest__.py Configuration
+
+Ensure master data is loaded in the `'data': []` array:
+
+```python
+{
+    'name': 'Hospital Management',
+    'version': '13.0.1.0.0',
+    'category': 'Healthcare',
+    'author': 'Your Name',
+    'depends': ['base'],
+    'data': [
+        'security/ir.model.access.csv',
+        'data/hospital_sequence_data.xml',           # Sequences (production)
+        'data/hospital_appointment_type_data.xml',   # Master data
+        'data/hospital_patient_category_data.xml',   # Master data
+    ],
+    'demo': [
+        'demo/hospital_demo_data.xml',  # Demo records for testing
+    ],
+    'installable': True,
+}
+```
+
+### H. When to Use Master Data vs Demo Data
+
+**Master Data (Production) — Goes in `data/` folder:**
+* Appointment types, patient categories, facility classifications
+* Configuration records that users rely on in daily workflows
+* Reference data that should never be deleted
+* Use `noupdate="1"` to prevent overwriting on updates
+* Users will select these in dropdown fields
+
+**Demo Data (Testing) — Goes in `demo/` folder:**
+* Sample patients, sample appointments
+* Test records to showcase module functionality
+* Records that can be safely deleted during development
+* Use `noupdate="0"` to refresh on reinstall
+* Not visible to end users on production
+
+### I. Best Practices for Master Data
+
+1. **Stability:** IDs must never change once published (other modules may reference them).
+2. **Meaningful Sequences:** Use `sequence` field so users can reorder in UI if needed.
+3. **Active Flag:** Always include `<field name="active">True</field>` for visibility.
+4. **Documentation:** Add `description` field to clarify purpose to end users.
+5. **Minimal Set:** Only include categories/types that are truly essential and universally applicable.
+6. **No User Data:** Master data should NOT contain user-specific information (e.g., "John Doe" patient belongs in demo, not master data).
+7. **Testing Impact:** Master data persists across test runs—ensure it doesn't interfere with test workflows.
