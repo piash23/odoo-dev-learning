@@ -72,7 +72,7 @@ class HospitalPatient(models.Model):
     @api.model
     def create(self, vals):
         if vals.get('name_seq', _('New')) == _('New'):
-            vals['name_seq'] = self.env['ir.sequence'].next_by_code('hospital.patient.code') or _('New')
+            vals['name_seq'] = self.env['ir.sequence'].next_by_code('hospital.patient') or _('New')
         return super(HospitalPatient, self).create(vals)
 
     

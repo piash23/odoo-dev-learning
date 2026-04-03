@@ -45,7 +45,7 @@ class HospitalAppointment(models.Model):
     @api.model
     def create(self, vals):
         if vals.get('appointment_seq', _('New')) == _('New'):
-            vals['appointment_seq'] = self.env['ir.sequence'].next_by_code('hospital.appointment.code') or _('New')
+            vals['appointment_seq'] = self.env['ir.sequence'].next_by_code('hospital.appointment') or _('New')
         return super(HospitalAppointment, self).create(vals)
 
     def action_confirm(self):

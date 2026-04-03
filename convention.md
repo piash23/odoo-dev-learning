@@ -309,7 +309,65 @@ Alternative verbose form (also valid in Odoo 13, and preferred for Odoo 14+):
 
 ---
 
-## 4. Directory Structure
+## 4. Sequence Conventions
+
+When defining `ir.sequence` records, keep ID/code naming deterministic and avoid ambiguous suffixes.
+
+Hard rule:
+* The sequence `code` value must never end with `.code`.
+
+### A. Standard Sequences (Single-Use Models)
+Use this pattern when one model uses a single sequence stream.
+
+| Element | Pattern | Example |
+| :--- | :--- | :--- |
+| **Sequence ID** | `seq_[model_snake_case]` | `seq_hospital_patient` |
+| **Sequence Code** | `[model]` | `hospital.patient` |
+
+### B. Contextual Sequences (Multi-Use Models)
+Use this pattern when one model has distinct sequence streams by business context (for example inpatient/outpatient).
+
+| Element | Pattern | Example |
+| :--- | :--- | :--- |
+| **Sequence ID** | `seq_[model_snake_case]_[context]` | `seq_hospital_appointment_inpatient` |
+| **Sequence Code** | `[model].[context]` | `hospital.appointment.inpatient` |
+
+Note:
+* For strictly categorized models, skip creating a base sequence and create only contextual sequences.
+
+### C. Sequence Data XML Conventions (`data/hospital_sequence_data.xml`)
+Use these rules for the `<record model="ir.sequence">` entries inside sequence data files.
+
+| Element | Standard Pattern | Contextual Pattern | Example |
+| :--- | :--- | :--- | :--- |
+| **XML Record ID (`id`)** | `seq_[model_snake_case]` | `seq_[model_snake_case]_[context]` | `seq_hospital_patient`, `seq_hospital_appointment_inpatient` |
+| **Sequence Code (`<field name="code">`)** | `[model]` | `[model].[context]` | `hospital.patient`, `hospital.appointment.inpatient` |
+
+Rules:
+* Keep XML `id` and sequence `code` semantically aligned (same model and same optional context).
+* Do not use `.code` suffix in `code` values (invalid style example: `hospital.patient.code`).
+
+Minimal examples:
+
+```xml
+<record id="seq_hospital_patient" model="ir.sequence">
+    <field name="name">Patient</field>
+    <field name="code">hospital.patient</field>
+    <field name="prefix">HP</field>
+    <field name="padding">5</field>
+</record>
+
+<record id="seq_hospital_appointment_inpatient" model="ir.sequence">
+    <field name="name">Inpatient Appointment</field>
+    <field name="code">hospital.appointment.inpatient</field>
+    <field name="prefix">INP</field>
+    <field name="padding">5</field>
+</record>
+```
+
+---
+
+## 5. Directory Structure
 
 The module structure should strictly follow this hierarchy:
 
@@ -323,8 +381,9 @@ om_hospital/
 │   └── ir.model.access.csv     # Required ACLs for UI/model access
 ├── data/
 │   ├── hospital_sequence_data.xml # (Optional) Sequences (example: patient IDs)
-│   ├── hospital_demo_data.xml     # (Optional) Demo records
 │   └── hospital_cron_data.xml     # (Optional) Scheduled actions
+├── demo/
+│   └── hospital_demo_data.xml     # (Optional) Demo records (non-production seed data)
 ├── models/
 │   ├── __init__.py             # Required to load Python model files
 │   ├── hospital_patient.py     # New Model (Strict naming)
@@ -344,3 +403,8 @@ om_hospital/
 │       └── icon.png
 └── doc/                        # Extra documentation
     └── changelog.rst
+```
+
+Data loading note:
+* Demo data files must live in `demo/` and must be loaded from the `demo`: [] array in `__manifest__.py`.
+* Never load demo data files from the `data`: [] array, to avoid installing fake/demo records in production databases.
