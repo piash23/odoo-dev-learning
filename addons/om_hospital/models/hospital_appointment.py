@@ -35,11 +35,11 @@ class HospitalAppointment(models.Model):
     # (No compute methods needed for this model currently)
 
     # Python Constraints
-    @api.constrains('appointment_date')
-    def _check_appointment_date(self):
-        for record in self:
-            if record.appointment_date < fields.Datetime.now():
-                raise ValidationError(_("Appointment date cannot be in the past."))
+    # @api.constrains('appointment_date')
+    # def _check_appointment_date(self):
+    #     for record in self:
+    #         if record.appointment_date < fields.Datetime.now():
+    #             raise ValidationError(_("Appointment date cannot be in the past."))
 
     # CRUD Methods
     @api.model

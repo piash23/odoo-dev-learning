@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <data noupdate="1">
+        <record id="hospital_patient_data_1" model="hospital.patient">
+            <field name="name">John Doe</field>
+            <field name="age">30</field>
+        </record>
+
+        <record id="hospital_patient_data_2" model="hospital.patient">
+            <field name="name">Ava Smith</field>
+            <field name="age">25</field>
+        </record>
+
+        <record id="hospital_patient_data_3" model="hospital.patient">
+            <field name="name">Noah Johnson</field>
+            <field name="age">35</field>
+
+        </record>
+    </data>
+</odoo>

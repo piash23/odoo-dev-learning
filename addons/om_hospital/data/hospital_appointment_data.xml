@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <data noupdate="1">
+        <record id="hospital_appointment_data_1" model="hospital.appointment">
+            <field name="patient_id" ref="hospital_patient_data_1"/>
+            <field name="doctor_name">Dr. John Doe</field>
+            <field name="appointment_date">2026-10-10 15:05:33</field>
+        </record>
+    </data>
+</odoo>
