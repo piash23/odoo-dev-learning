@@ -558,39 +558,39 @@ Master data (reference/configuration records) are production-critical records th
 
 | Element | Pattern | Example |
 | :--- | :--- | :--- |
-| **Master Data File** | `data/[module]_[entity_type]_data.xml` | `data/hospital_appointment_type_data.xml` |
+| **Master Data File** | `data/[model_snake_case]_data.xml` | `data/hospital_appointment_type_data.xml`, `data/hospital_patient_category_data.xml` |
 
 Breakdown:
 - `data/` — Folder where master data lives
-- `[module]` — Your module name: `hospital`
-- `[entity_type]` — What the file contains: `appointment_type`, `patient_category`, `facility_type`
+- `[model_snake_case]` — Your model name in snake_case: e.g., `hospital_appointment_type`, `hospital_patient_category`
 - `_data.xml` — Suffix to indicate this file contains master records
 
-You can split master data across multiple files (one per entity type) or combine related ones.
+You can split master data across multiple files (one per model type) or combine related ones.
 
 ### C. Master Data Record ID Naming Convention
 
 **ID Pattern:**
 ```
-[module]_[entity_type]_[code]
+[model_snake_case]_[code]
 ```
 
 **Component Breakdown:**
 
 | Component | Meaning | Rules | Example |
 | :--- | :--- | :--- | :--- |
-| `[module]` | Your module name | Lowercase | `hospital` |
-| `[entity_type]` | Type of master record | Lowercase snake_case (matches filename) | `appointment_type`, `patient_category`, `facility_type` |
+| `[model_snake_case]` | Your model name in snake_case | Lowercase snake_case (mirrors your model name) | `hospital_appointment_type`, `hospital_patient_category`, `hospital_facility_type` |
 | `[code]` | Unique identifier for this record | Lowercase snake_case, stable, self-documenting | `inpatient`, `vip`, `emergency` |
+
+**Why this pattern?** Using the model name directly (instead of module + entity_type) avoids repetition in XML references. This keeps `self.env.ref()` calls clean: `self.env.ref('om_hospital.hospital_patient_category_vip')` instead of the redundant `self.env.ref('om_hospital.om_hospital_hospital_patient_category_vip')`.
 
 **Full Examples:**
 
-| Entity | ID | Breakdown |
-| :--- | :--- | :--- |
-| Inpatient Appointment Type | `hospital_appointment_type_inpatient` | `hospital` + `appointment_type` + `inpatient` |
-| VIP Patient Category | `hospital_patient_category_vip` | `hospital` + `patient_category` + `vip` |
-| ICU Facility | `hospital_facility_type_icu` | `hospital` + `facility_type` + `icu` |
-| Emergency Appointment | `hospital_appointment_type_emergency` | `hospital` + `appointment_type` + `emergency` |
+| Entity | ID | Breakdown | Python Ref |
+| :--- | :--- | :--- | :--- |
+| Inpatient Appointment Type | `hospital_appointment_type_inpatient` | `hospital_appointment_type` + `inpatient` | `self.env.ref('om_hospital.hospital_appointment_type_inpatient')` |
+| VIP Patient Category | `hospital_patient_category_vip` | `hospital_patient_category` + `vip` | `self.env.ref('om_hospital.hospital_patient_category_vip')` |
+| ICU Facility | `hospital_facility_type_icu` | `hospital_facility_type` + `icu` | `self.env.ref('om_hospital.hospital_facility_type_icu')` |
+| Emergency Appointment | `hospital_appointment_type_emergency` | `hospital_appointment_type` + `emergency` | `self.env.ref('om_hospital.hospital_appointment_type_emergency')` |
 
 **Critical Rules:**
 
