@@ -39,6 +39,7 @@
                         <field name="age_group"/>
                         <field name="note"/>
                         <field name="image" widget="image"/>
+                        <field name="active" invisible="1"/>
                     </group>
                 </sheet>
                 <div class="oe_chatter">

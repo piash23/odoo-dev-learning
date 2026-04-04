@@ -51,6 +51,7 @@
                 <!-- <field name="patient_age" avg="Average"/> -->
                 <field name="doctor_name"/>
                 <field name="appointment_date"/>
+                <field name="active" invisible="1"/>
             </tree>
         </field>
     </record>

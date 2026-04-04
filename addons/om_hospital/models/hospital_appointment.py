@@ -27,7 +27,7 @@ class HospitalAppointment(models.Model):
         ('done', 'Done'),
         ('cancelled', 'Cancelled')
     ], string="Status", default='draft', tracking=True)
-
+    active = fields.Boolean(string="Active", default=True, tracking=True)
     doctors_note = fields.Text(string="Doctor's Note", tracking=True)
     prescription = fields.Text(string="Prescription", tracking=True)
 

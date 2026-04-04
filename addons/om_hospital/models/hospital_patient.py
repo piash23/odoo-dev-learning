@@ -27,6 +27,8 @@ class HospitalPatient(models.Model):
         ('minor', 'Minor')
     ], string="Age Group", compute='_compute_age_group', store=True)
 
+    active = fields.Boolean(string="Active", default=True, tracking=True)
+
     appointment_count = fields.Integer(string="Appointment Count", compute='_compute_appointment_count')
     
     # 1. Compute Methods (First)
