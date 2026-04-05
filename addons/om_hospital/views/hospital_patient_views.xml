@@ -37,6 +37,7 @@
                         <field name="age"/>
                         <field name="gender"/>
                         <field name="age_group"/>
+                        <field name="doctor_id"/>
                         <field name="note"/>
                         <field name="image" widget="image"/>
                         <field name="active" invisible="1"/>
@@ -64,6 +65,7 @@
                 <field name="note"/>
                 <field name="age_group"/>
                 <field name="image" widget="image"/>
+                <field name="doctor_id"/>
             </tree>
         </field>
 
