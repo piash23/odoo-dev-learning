@@ -725,4 +725,169 @@ Ensure master data is loaded in the `'data': []` array:
 4. **Documentation:** Add `description` field to clarify purpose to end users.
 5. **Minimal Set:** Only include categories/types that are truly essential and universally applicable.
 6. **No User Data:** Master data should NOT contain user-specific information (e.g., "John Doe" patient belongs in demo, not master data).
+
+---
+
+## 4. Security Conventions
+
+All security configurations belong in a single `security/hospital_security.xml` file. This file defines user groups, permission categories, and access control rules for the module.
+
+### A. File Structure and Location
+
+| Element | Pattern | Example |
+| :--- | :--- | :--- |
+| **Security XML File** | `security/hospital_security.xml` | Located in `addons/om_hospital/security/` |
+| **Access Control CSV** | `security/ir.model.access.csv` | For model-level CRUD permissions |
+
+**Note:** Security files must be declared in `__manifest__.py` under `data`, before or after the access CSV (convention: list security XML after CSV).
+
+### B. Module Category (Security Group Category)
+
+Module categories help organize groups in Settings > Users & Companies > Groups. Use this to visually group your module's roles.
+
+| Element | Pattern | Example |
+| :--- | :--- | :--- |
+| **XML ID** | `module_category_[description]` | `module_category_hospital` |
+| **Display Name** | Title Case, descriptive | `Hospital Management` |
+| **Model** | Always `ir.module.category` | `<record model="ir.module.category">` |
+
+**Example:**
+```xml
+<record id="module_category_hospital" model="ir.module.category">
+    <field name="name">Hospital Management</field>
+    <field name="description">Category for Hospital Module</field>
+    <field name="sequence">1</field>
+</record>
+```
+
+### C. User Groups (Roles)
+
+Define functional roles (Doctor, Manager, etc.) that users can be assigned to. Each group grants specific permissions and rules.
+
+| Element | Pattern | Example |
+| :--- | :--- | :--- |
+| **XML ID** | `group_[module]_[role_name]` | `group_hospital_doctor` |
+| **Display Name** | Title Case, single word role | `Doctor` |
+| **Model** | Always `res.groups` | `<record model="res.groups">` |
+| **Category Ref** | Reference to module category | `ref="module_category_hospital"` |
+
+**Rules:**
+* Always inherit from `base.group_user` (or chain inheritance through other groups for role hierarchy).
+* Use `implied_ids` to establish role hierarchy (e.g., Manager implies Doctor permissions).
+* Group names should be **singular and role-focused** (not "Doctors", use "Doctor").
+* Keep the display name concise for UI clarity in user forms.
+
+**Example:**
+```xml
+<record id="group_hospital_doctor" model="res.groups">
+    <field name="name">Doctor</field>
+    <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
+    <field name="category_id" ref="module_category_hospital"/>
+</record>
+
+<record id="group_hospital_manager" model="res.groups">
+    <field name="name">Manager</field>
+    <field name="implied_ids" eval="[(4, ref('group_hospital_doctor'))]"/>
+    <field name="category_id" ref="module_category_hospital"/>
+</record>
+```
+
+### D. Access Control Rules (ir.rule)
+
+Record Rules define domain-based record filtering for groups. They control which records each group can see and edit.
+
+| Element | Pattern | Example |
+| :--- | :--- | :--- |
+| **XML ID** | `rule_[model]_[description]` | `rule_hospital_patient_doctor_own` |
+| **Display Name** | Clear description of the rule | `Doctor can only see their own patients` |
+| **Model** | Always `ir.rule` | `<record model="ir.rule">` |
+| **Target Model Ref** | Reference to the model being restricted | `ref="model_hospital_patient"` |
+
+**Field Reference:**
+* `model_id` → Use `ref="model_[model_name]"` where underscores replace dots (e.g., `model_hospital_patient` for `hospital.patient`).
+* `groups` → Specify which groups this rule applies to using `eval="[(4, ref('group_id'))]"` syntax.
+* `domain_force` → Write the domain using model field paths (e.g., `[('doctor_id.related_user_id', '=', user.id)]`).
+* `perm_read`, `perm_write`, `perm_create`, `perm_unlink` → Set to `1` (allow) or `0` (deny); omit for no restriction.
+
+**Example:**
+```xml
+<record id="rule_hospital_patient_doctor_own" model="ir.rule">
+    <field name="name">Doctor can only see their own patients</field>
+    <field name="model_id" ref="model_hospital_patient"/>
+    <field name="groups" eval="[(4, ref('group_hospital_doctor'))]"/>
+    <field name="domain_force">[('doctor_id.related_user_id', '=', user.id)]</field>
+</record>
+```
+
+### E. Model Access CSV (ir.model.access)
+
+The `ir.model.access.csv` file grants or denies model-level CRUD permissions (Create, Read, Update, Delete) to groups.
+
+**CSV Header:**
+```
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+```
+
+| Column | Pattern | Example |
+| :--- | :--- | :--- |
+| **id** | `access_[model_name]` | `access_hospital_patient` |
+| **name** | Descriptive label (info only) | `access.hospital.patient` |
+| **model_id:id** | `model_[model_name]` | `model_hospital_patient` |
+| **group_id:id** | Group reference or `base.group_user` for all users | `base.group_user` |
+| **perm_read** | `1` (allow) or `0` (deny) | `1` |
+| **perm_write** | `1` (allow) or `0` (deny) | `1` |
+| **perm_create** | `1` (allow) or `0` (deny) | `1` |
+| **perm_unlink** | `1` (allow) or `0` (deny) | `1` |
+
+**Example:**
+```csv
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_hospital_patient,access.hospital.patient,model_hospital_patient,base.group_user,1,1,1,1
+access_hospital_doctor,access.hospital.doctor,model_hospital_doctor,base.group_user,1,1,1,1
+```
+
+### F. Security Conventions Best Practices
+
+1. **Hierarchy:** Use implied_ids to create role hierarchies (e.g., Manager > Doctor > Base User).
+2. **Rule Domain Paths:** Always validate domain paths match actual model field names (e.g., `related_user_id`, not `user_id`).
+3. **Group Naming:** Use singular, role-focused names that clearly describe the user's function.
+4. **Rule Descriptions:** Keep rule names descriptive so administrators understand the purpose.
+5. **Access Order:** Declare access control in `__manifest__.py` after groups are defined in `hospital_security.xml`.
+6. **Testing:** Always test rules with sample users from each group to confirm filtering works as expected.
+7. **Documentation:** Add inline comments in `hospital_security.xml` for complex rules or hierarchies.
+
+### G. Complete Example (hospital_security.xml)
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <!-- Security Category -->
+    <record id="module_category_hospital" model="ir.module.category">
+        <field name="name">Hospital Management</field>
+        <field name="description">Category for Hospital Module</field>
+        <field name="sequence">1</field>
+    </record>
+
+    <!-- User Groups (Roles) -->
+    <record id="group_hospital_doctor" model="res.groups">
+        <field name="name">Doctor</field>
+        <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
+        <field name="category_id" ref="module_category_hospital"/>
+    </record>
+
+    <record id="group_hospital_manager" model="res.groups">
+        <field name="name">Manager</field>
+        <field name="implied_ids" eval="[(4, ref('group_hospital_doctor'))]"/>
+        <field name="category_id" ref="module_category_hospital"/>
+    </record>
+
+    <!-- Record Rules (Access Control) -->
+    <record id="rule_hospital_patient_doctor_own" model="ir.rule">
+        <field name="name">Doctor can only see their own patients</field>
+        <field name="model_id" ref="model_hospital_patient"/>
+        <field name="groups" eval="[(4, ref('group_hospital_doctor'))]"/>
+        <field name="domain_force">[('doctor_id.related_user_id', '=', user.id)]</field>
+    </record>
+</odoo>
+```
 7. **Testing Impact:** Master data persists across test runs—ensure it doesn't interfere with test workflows.
