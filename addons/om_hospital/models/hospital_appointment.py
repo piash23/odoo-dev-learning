@@ -30,6 +30,7 @@ class HospitalAppointment(models.Model):
     active = fields.Boolean(string="Active", default=True, tracking=True)
     doctors_note = fields.Text(string="Doctor's Note", tracking=True)
     prescription = fields.Text(string="Prescription", tracking=True)
+    line_ids = fields.One2many('hospital.appointment.line', 'appointment_id', string="Appointment Lines")
 
     # Compute Methods
     # (No compute methods needed for this model currently)
@@ -71,3 +72,12 @@ class HospitalAppointment(models.Model):
             if record.state not in ['cancelled', 'done']:
                 raise ValidationError(_("Only appointments in cancelled or done state can be reset to draft."))
             record.state = 'draft'
+
+
+class HospitalAppointmentLine(models.Model):
+    _name = "hospital.appointment.line"
+    _description = "Hospital Appointment Line"
+
+    appointment_id = fields.Many2one('hospital.appointment', string="Appointment", required=True)
+    product_id = fields.Many2one('product.product', string="Product", required=True)
+    quantity = fields.Integer(string="Quantity", default=1)

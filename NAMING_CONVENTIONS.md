@@ -95,6 +95,10 @@ These terms are commonly confused. Use the definitions below:
 * **Images:** Use `fields.Image(...)` instead of `fields.Binary(...)` for automatic resizing.
 * **Rec Name:** Do not define `_rec_name` if your model already has a `name` field.
 
+### F. Relational Field Naming Conventions (New)
+* **`One2many`** and **`Many2many`**: Must end with **`_ids`** (e.g., `line_ids`, `patient_ids`). This indicates a recordset of multiple records. The prefix word should be singular.
+* **`Many2one`**: Must end with **`_id`** (e.g., `patient_id`, `product_id`). This indicates a single record.
+
 ---
 
 ## 3. XML Conventions (Views & Actions)
