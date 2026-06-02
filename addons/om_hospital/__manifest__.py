@@ -18,6 +18,8 @@
         'data/hospital_patient_data.xml',
         'data/hospital_appointment_data.xml',
 
+        'wizard/hospital_appointment_create_views.xml',
+
         'views/hospital_patient_views.xml',
         'views/sale_order_views.xml',
         'views/hospital_appointment_views.xml',

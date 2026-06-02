@@ -2,7 +2,7 @@
 <odoo>
 
 
-    <record id="open_patient_appointment" model="ir.actions.act_window">
+    <record id="action_hospital_patient_appointments" model="ir.actions.act_window">
         <field name="name">Hospital Appointments</field>
         <field name="res_model">hospital.appointment</field>
         <field name="view_mode">tree,form</field>
@@ -15,13 +15,16 @@
         <field name="model">hospital.patient</field>
         <field name="arch" type="xml">
            <form string="Hospital Patient">
+                <header>
+                    <button name="%(action_hospital_appointment_create)d" string="Create Appointment" type="action" class="oe_highlight"/>
+                </header>
                 <sheet>
 
                     <div class="oe_button_box" name="button_box">
-                        <button name="open_patient_appointment" type="object" class="oe_stat_button" icon="fa-calendar">
+                        <button name="action_view_appointments" type="object" class="oe_stat_button" icon="fa-calendar">
                             <field name="appointment_count" widget="statinfo" string="(O)Appointments"/>
                         </button>
-                        <button name="%(open_patient_appointment)d" type="action" class="oe_stat_button" icon="fa-calendar">
+                        <button name="%(action_hospital_patient_appointments)d" type="action" class="oe_stat_button" icon="fa-calendar">
                             <field name="appointment_count" widget="statinfo" string="(A)Appointments"/>
                         </button>
                     </div>

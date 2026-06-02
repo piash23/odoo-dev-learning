@@ -310,6 +310,51 @@ Alternative verbose form (also valid in Odoo 13, and preferred for Odoo 14+):
     <field name="binding_type">report</field>
 </record>
 ```
+# Odoo Wizard Naming Conventions
+
+Wizards in Odoo use `models.TransientModel` to store data temporarily. They should live under the `wizard/` directory with their own dedicated Python and XML files, and they require security access rights.
+
+## 1. File and Model Naming
+
+| Element | Pattern | Example |
+| :--- | :--- | :--- |
+| **Python File** | `wizard/[wizard_name_snake_case].py` | `wizard/hospital_appointment_create.py` |
+| **Wizard Model** | `[related_base_model].[action]` | `_name = "hospital.appointment.create"` |
+| **Class Name** | CamelCase | `class HospitalAppointmentCreate(models.TransientModel):` |
+| **XML File** | `wizard/[wizard_name_snake_case]_views.xml` | `wizard/hospital_appointment_create_views.xml` |
+
+**Rules:**
+* Wizards must inherit `models.TransientModel`.
+* Import wizard Python files in `wizard/__init__.py`.
+* Import the `wizard` directory in the module's root `__init__.py`.
+* Fields follow the same `_id` / `_ids` naming rules as standard models.
+
+## 2. View and Action IDs (XML)
+
+| Element | Pattern | Example ID |
+| :--- | :--- | :--- |
+| **Form View ID** | `view_[wizard_name]_form` | `view_hospital_appointment_create_form` |
+| **Window Action ID** | `action_[wizard_name]` | `action_hospital_appointment_create` |
+
+**Rules:**
+* Use `target="new"` in the Window Action (`ir.actions.act_window`) to ensure the wizard opens as a popup/modal.
+* The main execution button inside the wizard should be `type="object"`.
+* The Python method triggered by the button must use the `action_` prefix (e.g., `action_create_appointment`).
+
+## 3. Form View Requirements
+
+* **Cancel Button:** Wizard form footers must always include a cancel button using `special="cancel"`. This allows users to close the modal without triggering any backend logic.
+    * *Example:* `<button string="Cancel" class="btn-secondary" special="cancel" data-hotkey="z"/>`
+
+## 4. Python Method Returns
+
+* **Closing the Wizard:** Wizard action methods (`type="object"`) should either return nothing (which automatically closes the popup) or return a dictionary action (such as opening the newly created record).
+    * *Example to explicitly close:* `return {'type': 'ir.actions.act_window_close'}`
+
+## 5. Security & Access Rights
+
+* **Access Control:** Even though their database tables are temporary, `TransientModels` **must** be declared in `security/ir.model.access.csv` just like standard models.
+    * *Example Name:* `access_hospital_appointment_create` mapped to `model_hospital_appointment_create`.
 
 ---
 

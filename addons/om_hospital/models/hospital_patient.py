@@ -80,7 +80,7 @@ class HospitalPatient(models.Model):
         return super(HospitalPatient, self).create(vals)
 
     
-    def open_patient_appointment(self):
+    def action_view_appointments(self):
         return {
             'name': _('Appointments'),  # Added translation wrapper
             'type': 'ir.actions.act_window',
