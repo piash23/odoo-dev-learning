@@ -16,7 +16,11 @@
         <field name="arch" type="xml">
            <form string="Hospital Patient">
                 <header>
-                    <button name="%(action_hospital_appointment_create)d" string="Create Appointment" type="action" class="oe_highlight"/>
+                    <button name="%(action_hospital_appointment_create)d" 
+                    string="Create Appointment" 
+                    type="action"
+                    context="{'default_patient_id': active_id}"
+                    class="oe_highlight" />
                 </header>
                 <sheet>
 
