@@ -108,5 +108,6 @@
 
     <menuitem id="hospital_menu_root" name="Hospital" sequence="10"/>
     <menuitem id="hospital_menu_patient" name="Patients" parent="hospital_menu_root" action="action_hospital_patient" sequence="10"/>
+    <menuitem id="hospital_menu_create_appointment" name="Create Appointment" parent="hospital_menu_root" action="action_hospital_appointment_create" sequence="20"/>
 
 </odoo>
