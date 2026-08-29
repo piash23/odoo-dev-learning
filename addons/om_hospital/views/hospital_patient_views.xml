@@ -46,6 +46,7 @@
                         <field name="age_group"/>
                         <field name="doctor_id" options="{'no_create': True, 'no_open': True}"/>
                         <!-- <field name="doctor_id" options="{'no_quick_create': True, 'no_create': True, 'no_create_edit': True}"/> -->
+                        <field name="doctor_gender"/>
                         <field name="note"/>
                         <field name="image" widget="image"/>
                         <field name="active" invisible="1"/>
@@ -74,6 +75,7 @@
                 <field name="age_group"/>
                 <field name="image" widget="image"/>
                 <field name="doctor_id"/>
+                <field name="doctor_gender"/>
             </tree>
         </field>
 

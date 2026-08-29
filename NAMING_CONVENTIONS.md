@@ -102,6 +102,42 @@ These terms are commonly confused. Use the definitions below:
 * **`One2many`** and **`Many2many`**: Must end with **`_ids`** (e.g., `line_ids`, `patient_ids`). This indicates a recordset of multiple records. The prefix word should be singular.
 * **`Many2one`**: Must end with **`_id`** (e.g., `patient_id`, `product_id`). This indicates a single record.
 
+### G. Onchange Method Conventions
+
+Onchange methods (`@api.onchange`) run in the web client (browser UI) when a user modifies a field on a form view before saving.
+
+| Element | Pattern | Example |
+| :--- | :--- | :--- |
+| **Method Name** | `_onchange_[field_name]` | `def _onchange_doctor_id(self):` |
+| **Multi-field Trigger** | `_onchange_[field1]_[field2]` | `def _onchange_patient_id_appointment_date(self):` |
+| **Decorator** | `@api.onchange('[field_name]')` | `@api.onchange('doctor_id')` |
+
+#### Rules & Best Practices:
+1. **Method Placement:** Always place onchange methods **after compute methods** (`@api.depends`) and **before validation constraints** (`@api.constrains`).
+2. **UI Scope vs Backend:** Onchange executes only during interactive user editing in web forms. It does **not** trigger on backend ORM calls (`create()`, `write()`, automated crons). For backend data synchronization, use computed fields with `@api.depends`.
+3. **Reset / Else Branch:** Always handle the fallback when a user clears a field (e.g., setting the target field back to `False`).
+4. **Dynamic Warnings:** Onchange can return user-friendly modal warnings without interrupting execution:
+   ```python
+   return {
+       'warning': {
+           'title': _("Warning"),
+           'message': _("The selected doctor is currently inactive."),
+       }
+   }
+   ```
+5. **Dynamic Domains:** Onchange can return dynamic domain filters for other dropdown fields:
+   ```python
+   return {
+       'domain': {
+           'doctor_id': [('gender', '=', self.gender)]
+       }
+   }
+   ```
+6. **Readonly Fields & `force_save="1"`:** By default, Odoo's web client does **not** send `readonly` fields in the `create`/`write` save payload. If an `@api.onchange` populates a `readonly` field that needs to be saved to the database, you must add `force_save="1"` to the field tag in XML:
+   ```xml
+   <field name="doctor_gender" readonly="1" force_save="1"/>
+   ```
+
 ---
 
 ## 3. XML Conventions (Views & Actions)

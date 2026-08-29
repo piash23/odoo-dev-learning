@@ -28,6 +28,10 @@ class HospitalPatient(models.Model):
     ], string="Age Group", compute='_compute_age_group', store=True)
 
     doctor_id = fields.Many2one('hospital.doctor', string="Doctor", tracking=True)
+    doctor_gender = fields.Selection([
+        ('male', 'Male'),
+        ('female', 'Female'),
+    ], string="Doctor Gender")
 
     active = fields.Boolean(string="Active", default=True, tracking=True)
 
@@ -42,7 +46,6 @@ class HospitalPatient(models.Model):
                 record.age_group = 'minor'
             else:
                 record.age_group = 'major'
-    
     
     def _compute_appointment_count(self):
         for record in self:
@@ -64,15 +67,25 @@ class HospitalPatient(models.Model):
         # }
         # for record in self:
         #     record.appointment_count = counts_by_patient.get(record.id, 0)
+        
+    # 2. Onchange Methods (After Compute Methods)
+    @api.onchange('doctor_id')
+    def _onchange_doctor_id(self):
+        """Update doctor gender automatically when doctor is selected in the UI."""
+        for record in self:
+            if record.doctor_id:
+                record.doctor_gender = record.doctor_id.gender
+            else:
+                record.doctor_gender = False
 
-    # 2. Constrains (Second)
+    # 3. Constrains (Third)
     @api.constrains('age')
     def _check_age(self):
         for record in self:
             if record.age < 5:
                 raise ValidationError(_("Age cannot be less than 5."))
 
-    # 3. CRUD Methods (Last)
+    # 4. CRUD Methods (Last)
     @api.model
     def create(self, vals):
         if vals.get('name_seq', _('New')) == _('New'):
