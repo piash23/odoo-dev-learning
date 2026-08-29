@@ -175,6 +175,39 @@ When creating records programmatically in Python (e.g., from buttons, wizards, o
   }
   ```
 
+### I. Display & Search Methods (`name_get` & `name_search`)
+
+In Odoo 13, `name_get` defines the display label of a record when referenced in `Many2one` dropdowns, breadcrumbs, tags, and relational fields.
+
+| Method | Role | Return Type | Example |
+| :--- | :--- | :--- | :--- |
+| **`name_get`** | Formats record display string | List of tuples: `[(id, display_name), ...]` | `[(1, '[HP00001] John Doe')]` |
+| **`name_search`** | Filters autocomplete results by search string | List of tuples: `[(id, display_name), ...]` | Matches sequence or name |
+
+#### 1. Method Placement:
+* Placed **after CRUD methods** (`create`, `write`, `unlink`) and **before Action methods** (`action_...`), matching Section 2.C order.
+
+#### 2. `name_get` Implementation Pattern:
+```python
+def name_get(self):
+    """Custom record representation for Many2one dropdowns and breadcrumbs."""
+    result = []
+    for record in self:
+        if record.name_seq and record.name:
+            name = f"[{record.name_seq}] {record.name}"
+        elif record.name:
+            name = record.name
+        else:
+            name = record.name_seq or ''
+        result.append((record.id, name))
+    return result
+```
+
+#### 3. Key Rules & Best Practices:
+1. **Always Return List of Tuples:** Every item in the returned list **must** be a tuple of `(record.id, display_name_string)`.
+2. **Handle Incomplete Records:** Provide safe fallback handling if sequence or name is empty or not yet assigned (e.g. during record creation in memory).
+3. **High Execution Frequency:** `name_get` is called frequently when rendering views with relational fields. Avoid running expensive database queries inside the `name_get` loop.
+
 ---
 
 ## 3. XML Conventions (Views & Actions)

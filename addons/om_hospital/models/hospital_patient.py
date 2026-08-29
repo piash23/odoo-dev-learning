@@ -85,14 +85,28 @@ class HospitalPatient(models.Model):
             if record.age < 5:
                 raise ValidationError(_("Age cannot be less than 5."))
 
-    # 4. CRUD Methods (Last)
+    # 4. CRUD Methods
     @api.model
     def create(self, vals):
         if vals.get('name_seq', _('New')) == _('New'):
             vals['name_seq'] = self.env['ir.sequence'].next_by_code('hospital.patient') or _('New')
         return super(HospitalPatient, self).create(vals)
 
-    
+    # 5. Display & Search Methods
+    def name_get(self):
+        """Custom record representation for Many2one dropdowns, breadcrumbs, and tags."""
+        result = []
+        for record in self:
+            if record.name_seq and record.name:
+                name = f"[{record.name_seq}] {record.name}"
+            elif record.name:
+                name = record.name
+            else:
+                name = record.name_seq or ''
+            result.append((record.id, name))
+        return result
+
+    # 6. Action Methods
     def action_view_appointments(self):
         return {
             'name': _('Appointments'),  # Added translation wrapper
