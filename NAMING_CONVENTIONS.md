@@ -420,6 +420,51 @@ Alternative verbose form (also valid in Odoo 13, and preferred for Odoo 14+):
 </record>
 ```
 
+### I. Contextual Action Bindings (Action Dropdown Menu)
+
+In Odoo 12+, you can bind window actions or server actions to automatically appear under the top **"Action"** dropdown menu (the action menu next to Print) for specific models.
+
+| Element | Field / Pattern | Description & Example |
+| :--- | :--- | :--- |
+| **Binding Model Reference** | `<field name="binding_model_id" ref="model_[model_snake_case]"/>` | Target model where the action menu option appears: `ref="model_hospital_patient"` |
+| **Binding View Types** | `<field name="binding_view_types">form</field>` | Specifies where the action appears: `form`, `list`, or `list,form` |
+| **Binding Type** | `<field name="binding_type">action</field>` | Type of binding: `action` (default) or `report` |
+
+#### 1. Window Action Binding Example (Opening Related Records from Action Menu):
+```xml
+<record id="action_hospital_patient_appointments" model="ir.actions.act_window">
+    <field name="name">Appointments</field>
+    <field name="res_model">hospital.appointment</field>
+    <field name="view_mode">tree,form</field>
+    <field name="domain">[('patient_id', '=', active_id)]</field>
+    <field name="context">{}</field>
+    <field name="binding_model_id" ref="model_hospital_patient"/>
+    <field name="binding_view_types">form</field>
+</record>
+```
+
+#### 2. Server Action Binding Example (Executing Python Code from Action Menu):
+```xml
+<record id="action_mark_patient_vip" model="ir.actions.server">
+    <field name="name">Mark as VIP</field>
+    <field name="model_id" ref="model_hospital_patient"/>
+    <field name="binding_model_id" ref="model_hospital_patient"/>
+    <field name="binding_view_types">list,form</field>
+    <field name="state">code</field>
+    <field name="code">
+        for record in records:
+            record.action_mark_vip()
+    </field>
+</record>
+```
+
+#### 3. Key Rules & Best Practices:
+1. **Modern vs Legacy:** Always use `binding_model_id` on `<record model="ir.actions.act_window">` or `<record model="ir.actions.server">`. The legacy `<act_window ... src_model="..."/>` shortcut tag is deprecated.
+2. **`active_id` vs `active_ids`:**
+   * In `form` view bindings: use `active_id` (the single active open record).
+   * In `list` (tree) view batch actions: use `active_ids` or `records` in server action code to process all selected checkboxes simultaneously.
+3. **Dual Usage:** An action can be bound to the Action menu via `binding_model_id` AND referenced by stat buttons (`type="action"`) at the same time.
+
 ---
 
 ## 4. Wizard Conventions
