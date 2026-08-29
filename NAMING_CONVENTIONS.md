@@ -138,6 +138,43 @@ Onchange methods (`@api.onchange`) run in the web client (browser UI) when a use
    <field name="doctor_gender" readonly="1" force_save="1"/>
    ```
 
+### H. Programmatic Record Creation & Button Actions
+
+When creating records programmatically in Python (e.g., from buttons, wizards, or background tasks):
+
+#### 1. Method Signature & Record Safety
+* **Action Naming:** Prefix button action methods with `action_` (e.g., `def action_create_appointment(self):`).
+* **`self.ensure_one()`:** Always call `self.ensure_one()` at the start of any button method intended for single-record form actions to guarantee safe record access.
+
+#### 2. Values Dictionary (`vals`)
+* **Dictionary Name:** Use `vals` or `[model_snake_case]_vals` (e.g., `appointment_vals`).
+* **Many2one Fields:** Pass the integer ID (`'patient_id': self.patient_id.id`), not the recordset object.
+* **Dates & Times:** Use `fields.Date.today()` or `fields.Datetime.now()`.
+
+#### 3. Creating the Record
+* Use `self.env['target.model'].create(vals)`:
+  ```python
+  appointment_vals = {
+      'patient_id': self.patient_id.id,
+      'doctor_name': self.doctor_name,
+      'appointment_date': self.appointment_date,
+  }
+  appointment = self.env['hospital.appointment'].create(appointment_vals)
+  ```
+
+#### 4. Returning Window Actions (Opening the New Record)
+* When a button should immediately redirect the user to the newly created record's form view, return an `ir.actions.act_window` dictionary:
+  ```python
+  return {
+      'name': _('Appointment'),
+      'type': 'ir.actions.act_window',
+      'res_model': 'hospital.appointment',
+      'view_mode': 'form',
+      'res_id': appointment.id,
+      'target': 'current',
+  }
+  ```
+
 ---
 
 ## 3. XML Conventions (Views & Actions)

@@ -18,8 +18,9 @@ class HospitalAppointmentCreate(models.TransientModel):
             'appointment_date': self.appointment_date,
         }
         appointment = self.env['hospital.appointment'].create(appointment_vals)
-        # Optionally, you could return an action to open the created appointment form view
+        # Return an action to open the created appointment form view
         return {
+            'name': _('Appointment'),
             'type': 'ir.actions.act_window',
             'res_model': 'hospital.appointment',
             'view_mode': 'form',
